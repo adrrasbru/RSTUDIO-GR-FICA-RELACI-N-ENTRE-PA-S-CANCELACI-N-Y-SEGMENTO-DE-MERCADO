@@ -1,0 +1,74 @@
+---
+title: 'Visualización de datos:PEC3'
+author: "Autor: Adrián Rasero Bruzón"
+date: "noviembre 2024"
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    includes:
+      in_header: 75.584-PEC-header.html
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Cargar packages necesarios
+
+```{r packages}
+library("ggmosaic")
+library("ggplot2")
+library("fitdistrplus")
+library("MASS")
+library("survival")
+library("ggstatsplot")
+library("tidyverse")
+```
+
+## Data loading and dimensions (N x M)
+
+Leemos el fichero de datos en formato CSV, tiene 119,390 filas y 32 columnas:
+
+```{r load data}
+x=read.csv("hotel_bookings.csv", stringsAsFactors = T)
+```
+
+## GRÁFICA MOSAICO
+
+```{r mosaic_country_is_canceled}
+# paises con al menos 1000 reservas
+xx = x %>% group_by(country) %>% mutate(pais=n()) %>% filter(pais>=1000)
+xx$country=factor(xx$country)
+
+# Se realiza el gráfico para las cancelaciones por segmento y país
+ggplot(xx, aes(x = country, fill = factor(is_canceled))) + 
+  geom_bar(position = "fill") +  # Usamos "fill" para obtener proporciones
+  scale_fill_manual(values = c("#4C8BF5", "#FF4C4C"), labels = c("No Cancelado", "Cancelado")) +  # Colores más intensos
+  facet_wrap(~market_segment, ncol = 2) +  # Mejor distribución de las facetas
+  labs(
+    title = "Relación entre País, Cancelación y Segmento de Mercado",
+    x = "País", 
+    y = "Proporción", 
+    fill = "Estado de Cancelación"
+  ) +
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 10),  # Rotar etiquetas de país
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    strip.text = element_text(size = 12),  # Aumentar tamaño de texto en facetas
+    legend.position = "bottom",  # Colocar la leyenda abajo
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+
+```
+
