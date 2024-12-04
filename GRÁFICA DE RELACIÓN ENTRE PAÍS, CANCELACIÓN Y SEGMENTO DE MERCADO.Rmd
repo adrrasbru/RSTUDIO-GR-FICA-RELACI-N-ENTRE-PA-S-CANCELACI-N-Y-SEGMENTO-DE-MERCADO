@@ -1,0 +1,86 @@
+---
+title: "Visual analytics of hotel bookings data"
+author: "Julià Minguillón"
+date: "2024-08-12"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+NOTA: este tutorial usa R + RStudio + ciertas librerías (packages) de R para
+mostrar el uso de visualizaciones de datos para inspeccionar y analizar un 
+conjunto de datos. Os recomendamos explorar los siguientes enlaces:
+
+1) RStudio: https://posit.co/downloads/
+2) ggplot2: https://ggplot2.tidyverse.org/
+3) extensiones: https://exts.ggplot2.tidyverse.org/gallery/
+
+## Cargar packages necesarios
+
+```{r packages}
+library("ggmosaic")
+library("ggplot2")
+library("fitdistrplus")
+library("MASS")
+library("survival")
+library("ggstatsplot")
+library("tidyverse")
+```
+
+## Data loading and dimensions (N x M)
+
+Leemos el fichero de datos en formato CSV, tiene 119,390 filas y 32 columnas:
+
+```{r load data}
+x=read.csv("hotel_bookings.csv", stringsAsFactors = T)
+dim(x)
+```
+## GRÁFICA MOSAICO
+
+```{r mosaic_country_is_canceled}
+# Se realiza el gráfico para las cancelaciones por segmento y país
+ggplot(xx, aes(x = country, fill = factor(is_canceled))) + 
+  geom_bar(position = "fill") +  # Usamos "fill" para obtener proporciones
+  scale_fill_manual(values = c("#4C8BF5", "#FF4C4C"), labels = c("No Cancelado", "Cancelado")) +  # Colores más intensos
+  facet_wrap(~market_segment, ncol = 2) +  # Mejor distribución de las facetas
+  labs(
+    title = "Relación entre País, Cancelación y Segmento de Mercado",
+    x = "País", 
+    y = "Proporción", 
+    fill = "Estado de Cancelación"
+  ) +
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1, size = 10),  # Rotar etiquetas de país
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    strip.text = element_text(size = 12),  # Aumentar tamaño de texto en facetas
+    legend.position = "bottom",  # Colocar la leyenda abajo
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+```
+
+Aviación:
+Se refiere a los clientes que realizan reservas a través de aerolíneas o agencias asociadas a compañías aéreas. Este segmento generalmente está vinculado a paquetes vacacionales o viajes de negocios que incluyen vuelos y alojamiento.
+
+Complementaria:
+Este segmento engloba a los clientes que reservan a través de agencias o plataformas de terceros que ofrecen productos complementarios al servicio principal del hotel, como transporte o actividades. Es un canal intermedio entre el cliente y el hotel.
+
+Corporativa:
+Este segmento está relacionado con las reservas realizadas por empresas o corporaciones para sus empleados, generalmente para viajes de negocios o reuniones. Las empresas suelen negociar tarifas especiales con los hoteles.
+
+Directa:
+Se refiere a las reservas realizadas directamente por los clientes a través del sitio web del hotel, por teléfono o en persona, sin intermediarios. Generalmente, las reservas directas ofrecen mejores tarifas o beneficios adicionales, ya que el hotel no paga comisiones a agencias de viajes.
+
+Grupos:
+Este segmento incluye a reservas hechas por grupos grandes de personas, como conferencias, eventos, convenciones o viajes de grupo. Las tarifas son negociadas y suelen tener descuentos debido al volumen de personas.
+
+TA/TO offline (Agencias de Viajes / Tour Operators offline):
+Se refiere a las agencias de viajes tradicionales (offline), es decir, las que operan fuera de la web y ofrecen servicios como tours o paquetes vacacionales, que incluyen reservas de hotel. Estas agencias pueden operar mediante contacto físico o telefónico.
+
+TA online (Agencias de Viajes online):
+Son plataformas de reserva de viajes en línea como Expedia, Booking.com, Airbnb, entre otras. Estas agencias permiten a los clientes buscar y reservar habitaciones de hotel a través de internet. En este segmento, los hoteles suelen pagar comisiones por las reservas realizadas a través de estas plataformas.
